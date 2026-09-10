@@ -8,14 +8,14 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Create a minimal Unity project structure
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/my-unity-project/ProjectSettings"
-          echo "m_EditorVersion: 2021.3.0f1" > "$GITHUB_WORKSPACE/my-unity-project/ProjectSettings/ProjectVersion.txt"
+          mkdir -p "$GITHUB_WORKSPACE/unity-project/ProjectSettings"
+          echo "m_EditorVersion: 2021.3.0f1" > "$GITHUB_WORKSPACE/unity-project/ProjectSettings/ProjectVersion.txt"
       - id: action
         uses: .
         continue-on-error: true
         with:
-          projectPath: my-unity-project
-          unityVersion: 2021.3.0f1
+          projectPath: unity-project
+          unityVersion: '2021.3.0f1'
           testMode: editmode
           artifactsPath: artifacts
       - name: Assert action ran with projectPath input
@@ -25,15 +25,18 @@ jobs:
         run: |
           echo "outcome: $OUTCOME"
           echo "artifactsPath: $ARTIFACTS"
+          # The action is expected to fail in CI (no Unity license / Docker image),
+          # but it must not be skipped — any outcome other than 'skipped' is acceptable.
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
           if [ "$OUTCOME" = "success" ]; then
             if [ -z "$ARTIFACTS" ]; then
               echo "FAIL: action succeeded but artifactsPath output is empty"
               exit 1
             fi
             echo "PASS: action succeeded with artifactsPath='$ARTIFACTS'"
-          elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (no Unity license or Docker image available in harness)"
           else
-            echo "FAIL: unexpected outcome '$OUTCOME'"
-            exit 1
+            echo "PASS: action ran (outcome=$OUTCOME) — Unity license/image not available in harness, which is expected"
           fi
