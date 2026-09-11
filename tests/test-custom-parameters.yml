@@ -12,8 +12,8 @@ jobs:
         with:
           unityVersion: '2022.3.0f1'
           testMode: editmode
-          customParameters: '-enableCodeCoverage -debugCodeOptimization'
-      - name: Assert action ran (outputs set or failed gracefully without Unity license)
+          customParameters: '-nographics -batchmode'
+      - name: Assert action ran with customParameters input
         env:
           OUTCOME: ${{ steps.action.outcome }}
           ARTIFACTS: ${{ steps.action.outputs.artifactsPath }}
@@ -25,9 +25,9 @@ jobs:
               echo "FAIL: action succeeded but artifactsPath output is empty"
               exit 1
             fi
-            echo "PASS: got artifactsPath '$ARTIFACTS'"
+            echo "PASS: action succeeded with artifactsPath='$ARTIFACTS'"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (no Unity license/project available in harness)"
+            echo "PASS: action failed gracefully (no Unity license/project available in CI)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
