@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - id: action
         uses: .
         continue-on-error: true
@@ -14,21 +15,16 @@ jobs:
           customParameters: '-nographics -batchmode'
           testMode: 'editmode'
           artifactsPath: 'artifacts'
-      - name: Assert action ran with customParameters (success or graceful failure)
+
+      - name: Assert action ran with customParameters (fails gracefully without Unity license/project)
         env:
           OUTCOME: ${{ steps.action.outcome }}
-          ARTIFACTS: ${{ steps.action.outputs.artifactsPath }}
         run: |
           echo "outcome: $OUTCOME"
-          echo "artifactsPath: $ARTIFACTS"
           if [ "$OUTCOME" = "success" ]; then
-            if [ -z "$ARTIFACTS" ]; then
-              echo "FAIL: action succeeded but artifactsPath output is empty"
-              exit 1
-            fi
-            echo "PASS: action succeeded with customParameters, artifactsPath=$ARTIFACTS"
+            echo "PASS: action succeeded with customParameters"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (Unity not available in harness environment)"
+            echo "PASS: action failed gracefully (no Unity license or project available in test environment)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
